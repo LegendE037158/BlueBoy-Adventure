@@ -1,5 +1,6 @@
 package Tile_Interactive;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,6 +15,9 @@ public class IT_DryTree extends InteractiveObject{
         name = "Dry Tree";
         direction = "down";
         destrutible = true;
+
+        maxlife = 4;
+        life = maxlife;
 
         solidArea = new Rectangle();
         solidArea.x = 0;
@@ -34,7 +38,31 @@ public class IT_DryTree extends InteractiveObject{
         tile.worldX = worldX;
         tile.worldY = worldY;
 
-        gp.tileInteractiveObject[currentTileIndex] = tile;
+        gp.tileInteractiveObject[gp.currentMap][currentTileIndex] = tile;
+    }
+    public boolean checkRequiredItem(){
+        boolean isReqItem = false;
+
+        if (gp.player.currentWeapon.type == type_axe){
+            isReqItem = true;
+        }
+        return isReqItem;
+    }
+    public Color getParticleColor(){
+        Color color = new Color(65, 50, 30);
+        return color;
+    }
+    public int getParticleSize(){
+        int size = 6;
+        return size;
+    }
+    public int getParticleSpeed(){
+        int speed = 1;
+        return speed;
+    }
+    public int getParticleMaxLife(){
+        int maxlife = 20;
+        return maxlife;
     }
 
 }

@@ -15,6 +15,13 @@ public class OBJ_Sword_Normal extends Entity{
 
         name = "Normal Sword";
         type = type_sword;
+        solidArea = new Rectangle();
+        solidArea.x = 0;
+        solidArea.y = 0;
+        solidArea.width = 48;
+        solidArea.height = 48;
+        solidAreaDefaultX = solidArea.x;
+        solidAreaDefaultY = solidArea.y;
         try {
             image = ImageIO.read(new FileInputStream("res/Objects/sword_normal.png"));
         } catch (Exception e) {

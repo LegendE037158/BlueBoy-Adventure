@@ -15,5 +15,8 @@ public class InteractiveObject extends Entity {
     }
     public void getDestoyedForm(int currentTileIndex){}{
     }
+    public boolean checkRequiredItem(){
+        return false;
+    }
 
 }

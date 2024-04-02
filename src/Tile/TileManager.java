@@ -11,14 +11,15 @@ import Main.GamePanel;
 public class TileManager {
     GamePanel gp;
     public Tile[] tile;
-    public int mapTileNum[][];
+    public int mapTileNum[][][];
 
     public TileManager(GamePanel gp) {
         this.gp = gp;
-        tile = new Tile[42];
-        mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
+        tile = new Tile[50];
+        mapTileNum = new int[gp.maxMap][gp.maxWorldCol][gp.maxWorldRow];
         getTileImage();
-        loadMap("res/World/worldV2.txt");
+        loadMap("res/World/worldV3.txt", 0);
+        loadMap("res/World/interior01.txt", 1);
     }
 
     public void getTileImage() {
@@ -65,6 +66,9 @@ public class TileManager {
         getImage(39, "earth", false);
         getImage(40, "wall", true);
         getImage(41, "tree", true);
+        getImage(42, "hut", true);
+        getImage(43, "floor01", false);
+        getImage(44, "table01", true);
 
                 
     }
@@ -77,7 +81,7 @@ public class TileManager {
             e.printStackTrace();
         }
     }
-    public void loadMap(String name) {
+    public void loadMap(String name, int map) {
         try {
             InputStream is = new FileInputStream(name);
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -90,7 +94,7 @@ public class TileManager {
                 while(col < gp.maxWorldCol) {
                     String numbers[] = line.split(" ");
                     int num = Integer.parseInt(numbers[col]);
-                    mapTileNum[col][row] = num;
+                    mapTileNum[map][col][row] = num;
                     col++;
                 }
                 if(col == gp.maxWorldCol){
@@ -109,7 +113,7 @@ public class TileManager {
         int worldRow = 0;
 
         while(worldCol < gp.maxWorldCol && worldRow < gp.maxWorldRow) {
-            int tileNum = mapTileNum[worldCol][worldRow];
+            int tileNum = mapTileNum[gp.currentMap][worldCol][worldRow];
             int worldX = worldCol * gp.tileSize;
             int worldY = worldRow * gp.tileSize;
             int screenX = worldX - gp.player.worldX + gp.player.screenX;

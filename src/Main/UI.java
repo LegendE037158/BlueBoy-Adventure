@@ -26,7 +26,7 @@ public class UI {
     public int titleScreenRate = 0;
     public int slotCol = 0;
     public int slotRow = 0;
-    public boolean drawPath = true;
+    public int counter = 0;
 
 
     public UI(GamePanel gp){
@@ -71,12 +71,107 @@ public class UI {
             drawDialogueScreen();
         }
         if (gp.gameState == gp.inventoryState){
-            drawInventoryState();
+            drawInventoryScreen();
+        }
+        if (gp.gameState == gp.menuState){
+            drawMenuScreen();
+        }
+        if (gp.gameState == gp.transitionState){
+            drawTransition();
         }
 
     }
-    public void drawInventoryState() {
-        final int frameX = gp.tileSize*2;
+    public void drawTransition() {
+        counter++;
+        g2.setColor(new Color(0, 0, 0, counter*5));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        if (counter > 50){
+            gp.currentMap = gp.eHandler.tempMap;
+            gp.player.worldX = gp.eHandler.tempCol*gp.tileSize;
+            gp.player.worldY = gp.eHandler.tempRow*gp.tileSize;
+
+            counter = 0;
+            gp.gameState = gp.playState;
+        }
+    }
+    public void drawMenuScreen() {
+
+        String text;
+
+        g2.setColor(Color.white);
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 32F));
+
+        int frameX = gp.tileSize*6;
+        int frameY = gp.tileSize*2;
+        int frameWidth = gp.tileSize*8;
+        int frameHeight = gp.tileSize*7;
+
+        drawSubWindow(frameX, frameY, frameWidth, frameHeight);
+
+        text = "Option";
+        int x = getXforCenteredText(text);
+        int y = gp.tileSize*3;
+        int lineHeight = gp.tileSize;
+
+        g2.drawString(text, x, y);
+        
+        text = "Sound: ";
+        x = (gp.tileSize*7) + (gp.tileSize/2);
+        y += lineHeight;
+
+        g2.drawString(text, x, y);
+        placeCursor(x, y, 0);
+
+        text = "SE: ";
+        y += lineHeight;
+
+        g2.drawString(text, x, y);
+        placeCursor(x, y, 1);
+
+        text = "Save";
+        y += lineHeight;
+
+        g2.drawString(text, x, y);
+        placeCursor(x, y, 2);
+
+        text = "Save And Quit";
+        y += lineHeight;
+
+        g2.drawString(text, x, y);
+        placeCursor(x, y, 3);
+
+        text = "Back";
+        y += lineHeight;
+
+        g2.drawString(text, x, y);
+        placeCursor(x, y, 4);
+
+        int scaleX = gp.tileSize*4;
+        int scaleY = 20;
+
+        x = (gp.tileSize*9) + (gp.tileSize/2);
+        y = (gp.tileSize*4) - scaleY;
+
+        g2.drawRect(x, y, scaleX, scaleY);
+
+        int scale = (int)scaleX/10;
+        scaleX = scale*gp.music.volumeIndex;
+
+        g2.fillRect(x, y, scaleX, scaleY);
+
+        scaleX = gp.tileSize*4;
+        
+        y += lineHeight;
+
+        g2.drawRect(x, y, scaleX, scaleY);
+
+        scaleX = scale*gp.se.volumeIndex;
+
+        g2.fillRect(x, y, scaleX, scaleY);
+    }
+    public void drawInventoryScreen() {
+        final int frameX = gp.tileSize*4;
         final int frameY = gp.tileSize;
         final int frameWidth = gp.tileSize*5;
         final int frameHeight = gp.tileSize*10;
@@ -172,7 +267,7 @@ public class UI {
         g2.drawImage(gp.player.currentShield.image, tailX - 24, textY - 24, 32, 32, null);
         textY += lineHeight;
 
-        int inventoryX = gp.tileSize*9;
+        int inventoryX = gp.tileSize*11;
         int inventoryY = gp.tileSize;
         int inventoryWidth = gp.tileSize*6;
         int inventoryHeigth = gp.tileSize*5;
@@ -243,14 +338,14 @@ public class UI {
             g2.drawImage(gp.player.down1, x, y, gp.tileSize*2 , gp.tileSize*2, null);
         
             // Menu
-            text = "PLAY";
+            text = "NEW GAME";
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48));
             x = getXforCenteredText(text);
             y += gp.tileSize*3.5;
             g2.drawString(text, x, y); 
             placeCursor(x, y, 0);
 
-            text = "INSTUCTION";
+            text = "LOAD GAME";
             x = getXforCenteredText(text);
             y += gp.tileSize;
             g2.drawString(text, x, y);
@@ -266,7 +361,7 @@ public class UI {
             g2.setColor(Color.white);
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 42F));
 
-            String text = "Select your class!";
+            String text = "Select your role!";
             int x = getXforCenteredText(text);
             int y = gp.tileSize*3;
             g2.drawString(text, x, y);
@@ -307,6 +402,10 @@ public class UI {
             if (gp.player.life <= 0){
                 gp.stopMusic();
                 gp.playSE(7);
+
+                g2.setColor(new Color(0, 0, 0, 210));
+                g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
                 g2.setFont(MaruMonica);
                 g2.setColor(Color.white);
 
@@ -328,7 +427,23 @@ public class UI {
                 x = gp.screenWidth/2 - (textLength/2);
                 y = gp.screenHeight/2 - (gp.tileSize*2);
                 g2.drawString(text, x, y);
-            } else {
+
+                g2.setFont(g2.getFont().deriveFont(50F));
+                g2.setColor(Color.WHITE);
+
+                text = "Retry";
+                x = getXforCenteredText(text);
+                y = gp.tileSize*10;
+                g2.drawString(text, x, y);
+                placeCursor(x, y, 0);
+
+                text = "Exit";
+                x = getXforCenteredText(text);
+                y += gp.tileSize;
+                g2.drawString(text, x, y);
+                placeCursor(x, y, 1);
+
+            } else if (gp.goalReached == true){
                 g2.setFont(MaruMonica);
                 g2.setColor(Color.white);
 
@@ -350,6 +465,23 @@ public class UI {
                 x = gp.screenWidth/2 - (textLength/2);
                 y = gp.screenHeight/2 - (gp.tileSize*2);
                 g2.drawString(text, x, y);
+
+                g2.setFont(g2.getFont().deriveFont(50F));
+                g2.setColor(Color.WHITE);
+
+                text = "Retry";
+                x = getXforCenteredText(text);
+                y = gp.tileSize*10;
+                g2.drawString(text, x, y);
+                placeCursor(x, y, 0);
+
+                text = "Exit";
+                x = getXforCenteredText(text);
+                y += gp.tileSize;
+                g2.drawString(text, x, y);
+                placeCursor(x, y, 1);
+            } else {
+                gameFinished = false;
             }
 
 
@@ -434,6 +566,7 @@ public class UI {
     }
     public void drawDialogueScreen() {
         drawPlayerLife();
+        drawManaCrystal();
         // Window
         int x = gp.tileSize*2;
         int y = gp.tileSize/2;
@@ -461,6 +594,7 @@ public class UI {
     }
     public void drawPauseScreen() {
         drawPlayerLife();
+        drawManaCrystal();
 
         String text = "PAUSED";
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 96F));
@@ -469,7 +603,7 @@ public class UI {
 
         g2.drawString(text, x, y);
 
-        text = "Press 'Enter' To Retrun To Game";
+        text = "Press 'Escape' To Retrun To Game";
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F));
         x = getXforCenteredText(text);
         y += 40;

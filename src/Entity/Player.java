@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-
 import javax.imageio.ImageIO;
 import Main.GamePanel;
 import Main.KeyHandler;
@@ -25,8 +24,9 @@ public class Player extends Entity {
     public final int screenY;
     public int hasKey = 0;
     int standCounter = 0;
-    public ArrayList<Entity> inventory = new ArrayList<>();
+    public ArrayList<Entity> inventory;
     public final int inventorySize = 20;
+    public boolean lightUpdated = true;
 
     public int playerRole;
     public final int fighterRole;
@@ -35,9 +35,10 @@ public class Player extends Entity {
 
     public Player(GamePanel gp, KeyHandler keyH) {
         super(gp);
+
+        this.keyH = keyH;
         type = type_player;
         coin = 0;
-        this.keyH = keyH;
         screenX = (gp.screenWidth/2) - gp.tileSize/2;
         screenY = gp.screenHeight/2 - gp.tileSize/2;
         this.fighterRole = 0;
@@ -76,6 +77,9 @@ public class Player extends Entity {
         life = maxlife;
         maxmana = 3;
         mana = maxmana;
+        inventory  = new ArrayList<>();
+        invincible = false;
+        invincibleCounter = 0;
         setItems();
     }
 
@@ -127,6 +131,15 @@ public class Player extends Entity {
                 attack_left2 = ImageIO.read(new FileInputStream("res/Players/boy_axe_left_2.png"));
                 attack_right1 = ImageIO.read(new FileInputStream("res/Players/boy_axe_right_1.png"));
                 attack_right2 = ImageIO.read(new FileInputStream("res/Players/boy_axe_right_2.png"));
+            } else if (currentWeapon.name == "Pickaxe"){
+                attack_up1 = ImageIO.read(new FileInputStream("res/Players/boy_pick_up_1.png"));
+                attack_up1 = ImageIO.read(new FileInputStream("res/Players/boy_pick_up_2.png"));
+                attack_down1 = ImageIO.read(new FileInputStream("res/Players/boy_pick_down_1.png"));
+                attack_down2 = ImageIO.read(new FileInputStream("res/Players/boy_pick_down_2.png"));
+                attack_left1 = ImageIO.read(new FileInputStream("res/Players/boy_pick_left_1.png"));
+                attack_left2 = ImageIO.read(new FileInputStream("res/Players/boy_pick_left_2.png"));
+                attack_right1 = ImageIO.read(new FileInputStream("res/Players/boy_pick_right_1.png"));
+                attack_right2 = ImageIO.read(new FileInputStream("res/Players/boy_pick_right_2.png"));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,6 +158,7 @@ public class Player extends Entity {
     }
 
     public void update() {
+       
         if (life <= 0){
             invincible = false;
             gp.ui.gameFinished = true;
@@ -153,7 +167,7 @@ public class Player extends Entity {
             attacking();
         } else if (gp.keyH.cPressed == true){
             defending = true;
-        } else if (keyH.upPressed  || keyH.downPressed || keyH.leftPressed || keyH.rightPressed || keyH.enterPressed && defending == false){
+        } else if (keyH.upPressed  || keyH.downPressed || keyH.leftPressed || keyH.rightPressed || keyH.enterPressed || keyH.cPressed){
             if (keyH.upPressed == true){
                 direction = "up";
             }
@@ -177,8 +191,9 @@ public class Player extends Entity {
             damageInteractiveTile(tileIndex);
             InterectMON(monIndex);
             pickUpObj(objIndex);
+            gp.eHandler.checkEvent();
 
-            if (collisionOn == false){
+            if (collisionOn == false && keyH.enterPressed == false && keyH.cPressed == false){
                 switch (direction) {
                     case "up":
                         worldY -= speed;
@@ -212,7 +227,7 @@ public class Player extends Entity {
                 standCounter = 0;
             }
         }
-        if (gp.keyH.shotKeyPressed == true && projectile.alive == false && shotAvailableCounter == 30 && mana > 0){
+        if (gp.keyH.shotKeyPressed == true && projectile.alive == false && shotAvailableCounter >= 30 && mana > 0){
             projectile.set(worldX, worldY, direction, true, this);
 
             gp.projectileList.add(projectile);
@@ -220,6 +235,7 @@ public class Player extends Entity {
             if (mana <= 0){
                 mana = 0;
             }
+            shotAvailableCounter++;
             gp.playSE(9);
         }
 
@@ -228,12 +244,26 @@ public class Player extends Entity {
         if (shotAvailableCounter < 30){
             shotAvailableCounter++;
         }
+        if (keyH.cPressed == false){
+            defending = false;
+        }
 
     }
 
     public void damageInteractiveTile(int tileIndex){
-        if (tileIndex != 999 && attacking == true && gp.tileInteractiveObject[tileIndex].destrutible == true && currentWeapon.type == type_axe){
-            gp.tileInteractiveObject[tileIndex].getDestoyedForm(tileIndex);
+        if (tileIndex != 999 && 
+            keyH.enterPressed == true && 
+            gp.tileInteractiveObject[gp.currentMap][tileIndex].destrutible == true && 
+            gp.tileInteractiveObject[gp.currentMap][tileIndex].checkRequiredItem()
+        ){
+            if (attacking != true){
+                attacking();
+            }
+            gp.tileInteractiveObject[gp.currentMap][tileIndex].life--;
+            generateParticle(gp.tileInteractiveObject[gp.currentMap][tileIndex], gp.tileInteractiveObject[gp.currentMap][tileIndex]);
+            if (gp.tileInteractiveObject[gp.currentMap][tileIndex].life <= 0){
+                gp.tileInteractiveObject[gp.currentMap][tileIndex].getDestoyedForm(tileIndex);
+            }
         }
 
     }
@@ -250,6 +280,20 @@ public class Player extends Entity {
             if(selectedItem.type == type_shield){
                 currentShield = selectedItem;
                 defense = getDefence();
+            }
+            if (selectedItem.type == type_cumsumuble){
+                boolean comsumedItem = selectedItem.comsumeItem();
+                if (comsumedItem == true){
+                    inventory.remove(itemIndex);
+                }
+            }
+            if (selectedItem.type == type_light){
+                if (currentLight == selectedItem){
+                    currentLight = null;
+                } else {
+                    currentLight = selectedItem;
+                }
+                lightUpdated = true;
             }
         }
     }
@@ -302,20 +346,20 @@ public class Player extends Entity {
     }
 
     public void damageMonster(int monsterIndex, int attack) {
-        if (monsterIndex != 999){
-            if (gp.monster[monsterIndex].invincible == false){
-                int damage = (attack - gp.monster[monsterIndex].defense);
+        if (monsterIndex != 999 && playerRole != theifRole){
+            if (gp.monster[gp.currentMap][monsterIndex].invincible == false){
+                int damage = (attack - gp.monster[gp.currentMap][monsterIndex].defense);
                 if (damage <= 0){
                     damage = 0;
                 }
-                gp.monster[monsterIndex].life -= damage;
+                gp.monster[gp.currentMap][monsterIndex].life -= damage;
                 gp.ui.showMessage(damage + " damage");
-                gp.monster[monsterIndex].invincible = true;
-                gp.monster[monsterIndex].damageReaction();
+                gp.monster[gp.currentMap][monsterIndex].invincible = true;
+                gp.monster[gp.currentMap][monsterIndex].damageReaction();
                 gp.playSE(5);
-                if (gp.monster[monsterIndex].life <= 0){
-                    gp.monster[monsterIndex].dying = true;
-                    gp.ui.showMessage("killed the " + gp.monster[monsterIndex].name + "!");
+                if (gp.monster[gp.currentMap][monsterIndex].life <= 0){
+                    gp.monster[gp.currentMap][monsterIndex].dying = true;
+                    gp.ui.showMessage("killed the " + gp.monster[gp.currentMap][monsterIndex].name + "!");
                     getReward(monsterIndex);
                 }
             }
@@ -333,7 +377,7 @@ public class Player extends Entity {
             coinEarn += 20;
         }
         
-        switch (gp.monster[i].name){
+        switch (gp.monster[gp.currentMap][i].name){
             case "Green Slime":
                 expEarn += 2;
                 exp += expEarn;
@@ -361,7 +405,7 @@ public class Player extends Entity {
 
         }
 
-        while (exp > nextLevelExp){
+        if (exp >= nextLevelExp){
 
             exp -= nextLevelExp;
             level++;
@@ -377,30 +421,32 @@ public class Player extends Entity {
             attack = getAttack();
             defense = getDefence();
 
-            gp.ui.showMessage("You level up to " + level);
+            dialogue[0] = "You Leveled up to " + level + "!\n   You feel stronger.";
+            gp.gameState = gp.dialogueState;
+            speak();
 
         }
 
         Random monDropIndex = new Random();
         int droppedIndex = monDropIndex.nextInt(3);
 
-        for (int index = 0; index < gp.obj.length; index++){
-            if (gp.obj[index] == null){
+        for (int index = 0; index < gp.obj[gp.currentMap].length; index++){
+            if (gp.obj[gp.currentMap][index] == null){
                 if (droppedIndex == 0){
-                    gp.obj[index] = new OBJ_Heart(gp);
-                    if (mana == maxmana){
-                        gp.obj[index] = new OBJ_Coin_Bronze(gp);
+                    gp.obj[gp.currentMap][index] = new OBJ_Heart(gp);
+                    if (life == maxlife){
+                        gp.obj[gp.currentMap][index] = new OBJ_Coin_Bronze(gp);
                     }
                 } else if (droppedIndex == 1){
-                    gp.obj[index] = new OBJ_Mana(gp);
-                    if (life == maxlife){
-                        gp.obj[index] = new OBJ_Coin_Bronze(gp);
+                    gp.obj[gp.currentMap][index] = new OBJ_Mana(gp);
+                    if (mana == maxmana){
+                        gp.obj[gp.currentMap][index] = new OBJ_Coin_Bronze(gp);
                     }
                 } else if (droppedIndex == 2){
-                    gp.obj[index] =  new OBJ_Coin_Bronze(gp);
+                    gp.obj[gp.currentMap][index] =  new OBJ_Coin_Bronze(gp);
                 }
-                gp.obj[index].worldX = gp.monster[i].worldX;
-                gp.obj[index].worldY = gp.monster[i].worldY;
+                gp.obj[gp.currentMap][index].worldX = gp.monster[gp.currentMap][i].worldX;
+                gp.obj[gp.currentMap][index].worldY = gp.monster[gp.currentMap][i].worldY;
                 break;
             }
         }
@@ -411,18 +457,16 @@ public class Player extends Entity {
     }
 
     public void InterectMON(int monIndex) {
-        if (monIndex != 999 && defending == false && gp.monster[monIndex].dying == false){
+        if (monIndex != 999 && defending == false && gp.monster[gp.currentMap][monIndex].dying == false){
             if (invincible == false){
-                life -= gp.monster[monIndex].attack;
+                life -= gp.monster[gp.currentMap][monIndex].attack;
                 invincible = true;
             } 
-        } else if (gp.keyH.cPressed == false){
-            defending = false;
-        } else {
+        }else {
             if (monIndex != 999){
                 gp.playSE(7);
                 if (invincible == false){
-                    int damage = (gp.monster[monIndex].attack - defense);
+                    int damage = (gp.monster[gp.currentMap][monIndex].attack - defense);
                     if (damage <= 0){
                         damage = 0;
                     }
@@ -432,12 +476,11 @@ public class Player extends Entity {
             }
         }
     }
-
     public void InterectNPC(int i) {
         if (gp.keyH.enterPressed == true){
             if (i != 999){
                     gp.gameState = gp.dialogueState;
-                    gp.npc[i].speak();
+                    gp.npc[gp.currentMap][i].speak();
             } else {
                 attacking = true;
             }
@@ -448,12 +491,12 @@ public class Player extends Entity {
         if (i != 999){
             String text = "";
             if (inventory.size() != inventorySize){
-                switch(gp.obj[i].name){
+                switch(gp.obj[gp.currentMap][i].name){
                     case "Boot":
                         speed += 2;
                         gp.playSE(2);
                         gp.ui.showMessage("Your speed increased");
-                        gp.obj[i] = null;
+                        gp.obj[gp.currentMap][i] = null;
                         break;
                     case "Door":
                         for(int index = 0; index < inventory.size(); index++){
@@ -461,7 +504,7 @@ public class Player extends Entity {
                                 gp.ui.showMessage("Door Unlocked");
                                 inventory.remove(index);
                                 gp.playSE(3);
-                                gp.obj[i] = null;
+                                gp.obj[gp.currentMap][i] = null;
                                 break;
                             }
                         }
@@ -474,8 +517,9 @@ public class Player extends Entity {
                         }
                         gp.stopMusic();
                         gp.playSE(4);
+                        gp.goalReached = true;
                         gp.ui.gameFinished = true;
-                        gp.obj[i] = null;
+                        gp.obj[gp.currentMap][i] = null;
                         break;
                     case "Bronze Coin":
                         int coinEarn = 0;
@@ -483,7 +527,7 @@ public class Player extends Entity {
                         coin += coinEarn;
                         gp.ui.showMessage("Bonus: "+coinEarn+" x Coin");
                         gp.playSE(1);
-                        gp.obj[i] = null;
+                        gp.obj[gp.currentMap][i] = null;
                         break;
                     case "Heart":
                         int heartEarn = 0;
@@ -491,7 +535,7 @@ public class Player extends Entity {
                         life += heartEarn;
                         gp.ui.showMessage("Bonus: "+heartEarn+" x Heart");
                         gp.playSE(1);
-                        gp.obj[i] = null;
+                        gp.obj[gp.currentMap][i] = null;
                         break;
                     case "Mana Crystal":
                         int manaEarn = 0;
@@ -499,13 +543,13 @@ public class Player extends Entity {
                         mana += manaEarn;
                         gp.ui.showMessage("Bonus: "+manaEarn+" x Mana Crystal");
                         gp.playSE(1);
-                        gp.obj[i] = null;
+                        gp.obj[gp.currentMap][i] = null;
                         break;
                     default:
-                        inventory.add(gp.obj[i]);
+                        inventory.add(gp.obj[gp.currentMap][i]);
                         gp.playSE(1);
-                        text = "Got a " + gp.obj[i].name + "!";
-                        gp.obj[i] = null;
+                        text = "Got a " + gp.obj[gp.currentMap][i].name + "!";
+                        gp.obj[gp.currentMap][i] = null;
                         break;
                 }
             } else {

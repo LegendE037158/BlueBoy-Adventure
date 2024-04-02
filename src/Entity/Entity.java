@@ -37,7 +37,7 @@ public class Entity {
 
     public boolean monsterAttackAnim = false;
 
-    String dialogue[] = new String[20];
+    public String dialogue[] = new String[20];
     int dialogueIndex = 0;
 
     public boolean attacking = false, defending = false;
@@ -61,6 +61,7 @@ public class Entity {
     public final int type_axe = 4;
     public final int type_shield = 5;
     public final int type_cumsumuble = 6;
+    public final int type_light = 7;
 
     //Charactor Attributes
     public String name;
@@ -76,6 +77,7 @@ public class Entity {
     public int coin;
     public Entity currentWeapon;
     public Entity currentShield; 
+    public Entity currentLight; 
     public Projectile projectile;
 
     public int shotAvailableCounter = 0;
@@ -83,33 +85,41 @@ public class Entity {
     public int maxmana;
     public int mana;
 
+    public int lightRadius;
+
     public Entity(GamePanel gp){
         this.gp = gp;
     }
     public void setAction() {}
-    public void damageReaction() {};
+    public void damageReaction() {}
+    public boolean comsumeItem() {
+        return false;
+    }
     public void speak() {
 
         if (dialogue[dialogueIndex] == null) {
             dialogueIndex = 0;
+            gp.gameState = gp.playState;
+        } else {
+            gp.ui.currentDialogues = dialogue[dialogueIndex];
+            dialogueIndex++;
         }
-        gp.ui.currentDialogues = dialogue[dialogueIndex];
-        dialogueIndex++;
-
-        switch (gp.player.direction) {
-            case "up":
-                direction = "down";
-                break;
-            case "down":
-                direction = "up";
-                break;
-            case "left":
-                direction = "right";
-                break;
-            case "right":
-                direction = "left";
-                break;
-        
+        if (this.type == 1){
+            switch (gp.player.direction) {
+                case "up":
+                    direction = "down";
+                    break;
+                case "down":
+                    direction = "up";
+                    break;
+                case "left":
+                    direction = "right";
+                    break;
+                case "right":
+                    direction = "left";
+                    break;
+            
+            }
         }
 
     }
@@ -372,6 +382,38 @@ public class Entity {
             alive = false;
         }
 
+    }
+    public Color getParticleColor(){
+        Color color = null;
+        return color;
+    }
+    public int getParticleSize(){
+        int size = 0;
+        return size;
+    }
+    public int getParticleSpeed(){
+        int speed = 0;
+        return speed;
+    }
+    public int getParticleMaxLife(){
+        int maxlife = 0;
+        return maxlife;
+    }
+    public void generateParticle(Entity generator, Entity target){
+        Color color = generator.getParticleColor();
+        int size = generator.getParticleSize();
+        int speed = generator.getParticleSpeed();
+        int maxlife = generator.getParticleMaxLife();
+
+        Particle particle1 = new Particle(gp, generator, color, size, speed, maxlife, -2, -1);
+        Particle particle2 = new Particle(gp, generator, color, size, speed, maxlife, -2, 1);
+        Particle particle3 = new Particle(gp, generator, color, size, speed, maxlife, 2, 1);
+        Particle particle4 = new Particle(gp, generator, color, size, speed, maxlife, 2, -1);
+        
+        gp.particleList.add(particle1);
+        gp.particleList.add(particle2);
+        gp.particleList.add(particle3);
+        gp.particleList.add(particle4);
     }
     
 }

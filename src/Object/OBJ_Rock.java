@@ -1,5 +1,6 @@
 package Object;
 
+import java.awt.Color;
 import java.io.FileInputStream;
 import javax.imageio.ImageIO;
 import Entity.Projectile;
@@ -34,5 +35,21 @@ public class OBJ_Rock extends Projectile{
         } catch(Exception e){
             e.printStackTrace();
         }
+    }
+    public Color getParticleColor(){
+        Color color = new Color(40, 50, 0);
+        return color;
+    }
+    public int getParticleSize(){
+        int size = 10;
+        return size;
+    }
+    public int getParticleSpeed(){
+        int speed = 1;
+        return speed;
+    }
+    public int getParticleMaxLife(){
+        int maxlife = 20;
+        return maxlife;
     }
 }

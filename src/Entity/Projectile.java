@@ -24,15 +24,27 @@ public class Projectile extends Entity{
     public void update() {
         if (user == gp.player){
             int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
-            if (monsterIndex != 999){
-                gp.player.damageMonster(monsterIndex, this.attack);
-                alive = false;
+            if ( monsterIndex != 999){
+                if (gp.monster[gp.currentMap][monsterIndex].invincible == false && gp.monster[gp.currentMap][monsterIndex].attacking == false){
+                    gp.player.damageMonster(monsterIndex, this.attack);
+                    generateParticle(user.projectile, gp.monster[gp.currentMap][monsterIndex]);
+                    alive = false;
+                }
+            } else if (monsterIndex != 999){
+                if (gp.monster[gp.currentMap][monsterIndex].attacking == true){
+                    generateParticle(user.projectile, gp.monster[gp.currentMap][monsterIndex]);
+                    alive = false;
+                }
             }
         }
         if (user != gp.player){
             boolean contactPlayer = gp.cChecker.checkPlayer(this);
-            if (gp.player.invincible == false && contactPlayer){
+            if (gp.player.invincible == false && contactPlayer && gp.player.attacking == false){
                 damagePlayer(attack);
+                generateParticle(user.projectile, gp.player);
+                alive = false;
+            } else if (gp.player.attacking == true && contactPlayer){
+                generateParticle(user.projectile, gp.player);
                 alive = false;
             }
         }

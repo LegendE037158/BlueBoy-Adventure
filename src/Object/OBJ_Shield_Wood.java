@@ -1,6 +1,7 @@
 package Object;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.io.FileInputStream;
 import javax.imageio.ImageIO;
 import Entity.Entity;
@@ -14,6 +15,13 @@ public class OBJ_Shield_Wood extends Entity{
 
         name = "Woodern Shield";
         type = type_shield;
+        solidArea = new Rectangle();
+        solidArea.x = 0;
+        solidArea.y = 0;
+        solidArea.width = 48;
+        solidArea.height = 48;
+        solidAreaDefaultX = solidArea.x;
+        solidAreaDefaultY = solidArea.y;
         try {
             image = ImageIO.read(new FileInputStream("res/Objects/shield_wood.png"));
         } catch (Exception e) {

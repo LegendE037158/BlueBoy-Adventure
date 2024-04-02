@@ -1,5 +1,6 @@
 package Object;
 
+import java.awt.Color;
 import java.io.FileInputStream;
 
 import javax.imageio.ImageIO;
@@ -36,5 +37,21 @@ public class OBJ_Fireball extends Projectile{
         } catch(Exception e){
             e.printStackTrace();
         }
+    }
+    public Color getParticleColor(){
+        Color color = new Color(240, 50, 0);
+        return color;
+    }
+    public int getParticleSize(){
+        int size = 10;
+        return size;
+    }
+    public int getParticleSpeed(){
+        int speed = 1;
+        return speed;
+    }
+    public int getParticleMaxLife(){
+        int maxlife = 20;
+        return maxlife;
     }
 }
