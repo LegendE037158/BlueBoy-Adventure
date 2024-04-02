@@ -23,3 +23,4 @@ The `JAVA PROJECTS` view allows you to manage your dependencies. More details ca
 # BlueBoy-Adventure
 # BlueBoy-Adventure
 # BlueBoy-Adventure
+# BlueBoy-Adventure
